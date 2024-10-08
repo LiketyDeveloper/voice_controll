@@ -1,4 +1,4 @@
-from ai.train import train
+from ai.train import train_model
 
 if __name__ == "__main__":  
-    train()
+    train_model()

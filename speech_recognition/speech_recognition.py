@@ -1,7 +1,14 @@
 import json, pyaudio
 from vosk import Model, KaldiRecognizer
+from vosk import SetLogLevel
 
+# Disabling defult vosk logs
+SetLogLevel(-1)
+
+# Loading the model from file
 model = Model(r"C:/hackaton/voice_controll/speech_recognition/sr_model")
+
+# Starting audion stream from microphone
 rec = KaldiRecognizer(model, 16000)
 p = pyaudio.PyAudio()
 stream = p.open(
@@ -16,6 +23,8 @@ stream.start_stream()
 
 
 def listen():
+    """Listen for audio data"""
+    
     while True:
         data = stream.read(4000, exception_on_overflow=False)
         if rec.AcceptWaveform(data) and len(data) > 0:

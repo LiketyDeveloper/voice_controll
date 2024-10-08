@@ -6,41 +6,39 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 
 from ai.model import CommandIdentifier
-from ai.dataset import CommandDataset
+from ai import CommandDataset
 from ai import DEVICE
 
 from config import  MODEL_FILE_PATH
-
     
 
-def train():
+def train_model() -> None:
+    """
+    Train the neural network model for command identification.
+
+    This function will create a model, create a DataLoader from the dataset, train the model using the DataLoader, and then save the model to a file.
+    """
     dataset = CommandDataset()
-    
     model = CommandIdentifier(input_size=len(dataset.vocabulary), hidden_size=8, num_classes=len(dataset.commands))
-    model = model.to(DEVICE)
-    
-    BATCH_SIZE = 8
-    
-    dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
-    
+    model.to(DEVICE)
+
+    data_loader = DataLoader(dataset, batch_size=8, shuffle=True)
+
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-    
+
     for epoch in range(1000):
-        for index, (x, y) in enumerate(dataloader):
-            x = x.to(DEVICE)
-            y = y.to(DEVICE)
-            
-            output = model(x)
-            loss = criterion(output, y)
-            
+        for batch in data_loader:
+            inputs, labels = batch
+            inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
             optimizer.zero_grad()
+
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+
             loss.backward()
             optimizer.step()
-            
-        if (epoch + 1) % 100 == 0:
-            print(f"Epoch {epoch + 1} loss: {loss.item():.4f}")
-            
+
     data = {
         "model_state": model.state_dict(),
         "input_size": len(dataset.vocabulary),

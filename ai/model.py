@@ -1,15 +1,17 @@
-import json
+from loguru import logger
 
 import torch 
 import torch.nn as nn
 
 from ai.nltk_utils import tokenize, stem, bag_of_words
 from ai import DEVICE
-from ai.dataset import CommandDataset
+from ai import CommandDataset
 
 from config import MODEL_FILE_PATH
 
 class CommandIdentifier(nn.Module):
+    """Neural Network class to identify commands from text input"""
+
     
     def __init__(self, input_size, hidden_size, num_classes):
         super().__init__()
@@ -17,6 +19,7 @@ class CommandIdentifier(nn.Module):
         self.l2 = nn.Linear(hidden_size, hidden_size)
         self.l3 = nn.Linear(hidden_size, num_classes)
         self.activation = nn.ReLU()
+        self._dataset = CommandDataset()
         
     def forward(self, x):
         out = self.l1(x)
@@ -33,29 +36,35 @@ class CommandIdentifier(nn.Module):
         sentence = tokenize(query)
         sentence = [stem(word) for word in sentence]
         
-        print(sentence)
         sentence = bag_of_words(sentence, dataset.vocabulary)     
         
         sentence = torch.Tensor(sentence).to(DEVICE)  
         res = self(sentence)
-        if all(res < 0):
-            return "Непонятная команда"
+        
+        logger.debug("\n", "\n".join([
+            f"{command}{"\t" if len(command) > 4 else "\t\t"}>>\t{probability.item()}" for command, probability in zip(dataset.commands, res)]))
+
+        # if all(res < 0):
+        #     return "Непонятная команда"
+        
         return dataset.commands[self(sentence).argmax()]
     
 
-def load_model():
-    data = torch.load(MODEL_FILE_PATH)
-    
-    input_size = data["input_size"]
-    hidden_dize = data["hidden_size"]
-    output_size = data["output_size"]
-    
-    model_state = data["model_state"]
-    
-    model = CommandIdentifier(input_size, hidden_dize, output_size)
-    model.load_state_dict(model_state)
+def load_model() -> CommandIdentifier:
+    """Load command identifier model from file"""
+
+    data = torch.load(MODEL_FILE_PATH, weights_only=True)
+
+    model = CommandIdentifier(
+        input_size=data["input_size"],
+        hidden_size=data["hidden_size"],
+        num_classes=data["output_size"]
+    )
+
+    model.load_state_dict(data["model_state"])
     model.eval()
     model.to(DEVICE)
-    
+
     return model
+
     

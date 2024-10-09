@@ -7,7 +7,7 @@ from ai.nltk_utils import tokenize, stem, bag_of_words
 from ai import DEVICE
 from ai.dataset import CommandDataset
 
-from config import MODEL_FILE_PATH
+from config.nn import MODEL_FILE_PATH
 
 class CommandIdentifier(nn.Module):
     """Neural Network class to identify commands from text input"""

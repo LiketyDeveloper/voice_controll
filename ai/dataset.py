@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 from ai.nltk_utils import tokenize, stem, bag_of_words, get_stopwords, filter_numbers
 from ai import DEVICE
 
-from config import DATASET_FILE_PATH
+from config.nn import DATASET_FILE_PATH
 
 class CommandDataset(Dataset):
     

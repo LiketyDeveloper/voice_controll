@@ -1,20 +1,35 @@
-from speech_recognition import listen
+import multiprocessing.process
+import os
+
+# from speech_recognition import listen
 from ai.model import load_model
 from loguru import logger
-from funcs import perform_action
+from transport import Train
+import multiprocessing as mp
 
-if __name__ == "__main__":
+
+
+def main():
     model = load_model()
     logger.success("Application started")
     
-    for text in listen():
+    train_id = int(input("Введите id поезда: "))
+    train = Train(train_id)
+    # for text in listen():
+    while True:
+        text = input("Введите команду: ")
         
-    # while True:
-    #     text = input("Введите команду: ")
         if text == "выйти":
-            logger.info("Вы вышли из программы")
-            break         
+            logger.info("Вы вышли из программы")         
         
         logger.info(f"Вы сказали: {text}")
         command_name = model.invoke(text)
-        logger.info(perform_action(command_name, text))
+
+        train.current_state = command_name
+        
+    
+if __name__ == "__main__":
+    # p = mp.Process(target=os.system, args=("python manage_states.py",))
+    # p.start()
+    
+    main()

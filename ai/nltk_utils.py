@@ -6,6 +6,8 @@ from nltk.corpus import stopwords
 import numpy as np
 
 
+
+
 def get_stopwords():
     return stopwords.words("russian")
 

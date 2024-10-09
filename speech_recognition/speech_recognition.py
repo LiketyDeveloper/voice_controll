@@ -2,11 +2,17 @@ import json, pyaudio, os
 from vosk import Model, KaldiRecognizer
 from vosk import SetLogLevel
 
+from config.sr import USE_BIG_SR_MODEL, SHOW_SR_LOG, BIG_MODEL_PATH, SMALL_MODEL_PATH
+
 # Disabling defult vosk logs
-SetLogLevel(-1)
+if not SHOW_SR_LOG:
+    SetLogLevel(-1)
 
 # Loading the model from file
-model = Model(os.path.join(os.path.dirname(__file__), "sr_model"))
+if USE_BIG_SR_MODEL:
+    model = Model(BIG_MODEL_PATH)
+else:
+    model = Model(SMALL_MODEL_PATH)
 
 # Starting audion stream from microphone
 rec = KaldiRecognizer(model, 16000)
@@ -20,7 +26,6 @@ stream = p.open(
 )
 
 stream.start_stream()
-
 
 def listen():
     """Listen for audio data"""

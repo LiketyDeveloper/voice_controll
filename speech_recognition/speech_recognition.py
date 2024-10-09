@@ -1,4 +1,4 @@
-import json, pyaudio
+import json, pyaudio, os
 from vosk import Model, KaldiRecognizer
 from vosk import SetLogLevel
 
@@ -6,7 +6,7 @@ from vosk import SetLogLevel
 SetLogLevel(-1)
 
 # Loading the model from file
-model = Model(r"C:/hackaton/voice_controll/speech_recognition/sr_model")
+model = Model(os.path.join(os.path.dirname(__file__), "sr_model"))
 
 # Starting audion stream from microphone
 rec = KaldiRecognizer(model, 16000)

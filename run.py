@@ -7,10 +7,10 @@ if __name__ == "__main__":
     model = load_model()
     logger.success("Application started")
     
-    # for text in listen():
+    for text in listen():
         
-    while True:
-        text = input("Введите команду: ")
+    # while True:
+    #     text = input("Введите команду: ")
         if text == "выйти":
             logger.info("Вы вышли из программы")
             break         

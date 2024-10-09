@@ -6,7 +6,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 
 from ai.model import CommandIdentifier
-from ai import CommandDataset
+from ai.dataset import CommandDataset
 from ai import DEVICE
 
 from config import  MODEL_FILE_PATH

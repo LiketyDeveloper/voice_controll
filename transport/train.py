@@ -62,7 +62,7 @@ class Train:
                     logger.info(f"Скорость должна быть в пределах от 0 до {self.max_speed}")
                 else:
                     self._speed = new_speed
-                logger.info(f"Ускоряемся на {add_speed}")
+                    logger.info(f"Ускоряемся на {add_speed}")
             
             case "decrease_speed":
                 sub_speed = get_number_from_text(text)
@@ -72,7 +72,7 @@ class Train:
                     logger.info(f"Скорость должна быть в пределах от 0 до {self.max_speed}")
                 else:
                     self._speed = new_speed
-                logger.info(f"Замедляемся на {sub_speed}")
+                    logger.info(f"Замедляемся на {sub_speed}")
             
             case "set_speed":
                 new_speed = get_number_from_text(text)
@@ -81,10 +81,10 @@ class Train:
                     logger.info(f"Скорость должна быть в пределах от 0 до {self.max_speed}")
                 else:
                     self._speed = new_speed
-                logger.info(f"Устанавливаем скорость на {new_speed}")
+                    logger.info(f"Устанавливаем скорость на {new_speed}")
             
             case "stop":
-                self._max_speed = 0
+                self._speed = 0
                 logger.info("Останавливаемся")
             
             case _:

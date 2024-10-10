@@ -9,7 +9,6 @@ from torch.utils.data import DataLoader
 from ai.model import CommandIdentifier
 from ai.dataset import CommandDataset
 from ai import DEVICE
-from tqdm import tqdm
 
 from util import get_path
 
@@ -31,8 +30,10 @@ def train_model() -> None:
 
     This function will create a model, create a DataLoader from the dataset, train the model using the DataLoader, and then save the model to a file.
     """
-    dataset = CommandDataset()
-    model = CommandIdentifier(input_size=len(dataset.vocabulary), hidden_size=8, num_classes=len(dataset.commands))
+    hidden_size = 16
+    
+    dataset = CommandDataset(for_training=True)
+    model = CommandIdentifier(input_size=len(dataset.vocabulary), hidden_size=hidden_size, num_classes=len(dataset.commands))
     model.to(DEVICE)
 
     data_loader = DataLoader(dataset, batch_size=8, shuffle=True)
@@ -65,14 +66,14 @@ def train_model() -> None:
         loss_values.append(loss_val/len(data_loader))
             
         if (epoch + 1) % 50 == 0:
-            print(f"Epoch {epoch+1}: Average loss: {loss_val/len(data_loader):.4f}")
-            print(f"Accuracy: {accuracy_val/len(data_loader):.4f}")
+            print(f"Epoch {epoch+1} >> Average loss: {loss_val/len(data_loader):.4f}, Average accuracy: {accuracy_val/len(data_loader):.4f}")
+            print(f"")
 
     
     data = {
         "model_state": model.state_dict(),
         "input_size": len(dataset.vocabulary),
-        "hidden_size": 8,
+        "hidden_size": hidden_size,
         "output_size": len(dataset.commands),
     }
     torch.save(data, MODEL_FILE_PATH)

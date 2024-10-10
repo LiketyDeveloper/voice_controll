@@ -11,9 +11,5 @@ def get_path(*args):
         raise ValueError("All arguments must be strings")
 
     path = os.path.join(os.path.dirname(__file__), "..", *args)
-    
-    # Check that the path exists
-    if not os.path.exists(path):
-        raise FileNotFoundError("The path does not exist")
 
     return path

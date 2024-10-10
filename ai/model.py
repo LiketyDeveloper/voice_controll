@@ -47,24 +47,28 @@ class CommandIdentifier(nn.Module):
         
         return out
     
+    @logger.catch
     def invoke(self, query):
         dataset = CommandDataset()
         
         sentence = tokenize(query)
         sentence = [stem(word) for word in sentence]
+        sentence = bag_of_words(sentence, dataset.vocabulary)
+
         
-        sentence = bag_of_words(sentence, dataset.vocabulary)     
-        
-        sentence = torch.Tensor(sentence).to(DEVICE)  
+        sentence = torch.Tensor(sentence).to(DEVICE)
+        sentence = sentence.view(1, -1)
         res = self(sentence)
         
         logger.debug("\n" + "\n".join([
             f"{command}{"\t" if len(command) > 4 else "\t\t"}>>\t{probability.item()}" 
-            for command, probability in zip(dataset.commands, res)
+            for command, probability in zip(dataset.commands, res[0])
         ]))
+        
+        logger.debug(res)
 
-        # if all(res < 0):
-        #     return "Непонятная команда"
+        if all(res[0] < 0):
+            return "Непонятная команда"
         
         return dataset.commands[self(sentence).argmax()]
     

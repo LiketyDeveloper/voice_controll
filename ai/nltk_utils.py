@@ -3,9 +3,8 @@ import nltk
 # nltk.download('punkt_tab')    # Only if not installed
 from nltk.stem.snowball import SnowballStemmer
 from nltk.corpus import stopwords
+import pymorphy3
 import numpy as np
-
-
 
 
 def get_stopwords():
@@ -65,16 +64,10 @@ def bag_of_words(tokenized_words: list, all_words: list) -> np.ndarray:
     return bag       
 
 
-def filter_numbers(tokens):
-    numbers = [
-        "нол", "один", "два", "три", "четыр", "пят", "шест", "сем", "восем", "девя", "деся", 
-        "одиннадца", "двенадца", "тринадца", "четырнадца", "пятнадца", "шестнадца", "семнадца", "восемнадца", "девятнадца",
-        "двадца", "тридца", "сорок", "пятьдес", "шестьдес", "семьдес", "восемьдес", "девян",
-        "сто", "двест", "трист"
-    ]
+def is_number(token):
+    morph = pymorphy3.MorphAnalyzer()
 
-    return [token for  token in tokens if token not in numbers]
-
+    return morph.parse(token)[0].tag.POS == 'NUMR'
 
 
 def get_number_from_text(text):

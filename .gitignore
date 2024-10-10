@@ -1,6 +1,4 @@
 __pycache__
-pips.txt
 .venv
 sr_model
 sr_model_big
-model.pth

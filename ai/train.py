@@ -1,4 +1,5 @@
 from loguru import logger
+import matplotlib.pyplot as plt
 
 import torch
 import torch.nn as nn
@@ -12,8 +13,17 @@ from tqdm import tqdm
 
 from util import get_path
 
-from config.nn import MODEL_FILE_PATH
+from config.nn import MODEL_FILE_PATH, NN_TRAIN_EPOCHS
+
+
+def accuracy(preds, labels):
+    correct = 0
+    for pred, label in zip(preds, labels):
+        if pred.argmax() == label:
+            correct += 1
     
+    return correct / len(preds)
+
 
 def train_model() -> None:
     """
@@ -27,23 +37,37 @@ def train_model() -> None:
 
     data_loader = DataLoader(dataset, batch_size=8, shuffle=True)
 
-    criterion = nn.CrossEntropyLoss()
+    loss_fn = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-    for epoch in range(1000):
-        for batch in tqdm(data_loader):
-            inputs, labels = batch
-            inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
+    accuracy_values = []
+    loss_values = []
+    for epoch in range(NN_TRAIN_EPOCHS):
+        loss_val = 0
+        accuracy_val = 0
+        
+        for inputs, labels in data_loader:
             optimizer.zero_grad()
 
             outputs = model(inputs)
-            loss = criterion(outputs, labels)
-
+            loss = loss_fn(outputs, labels)
+            
             loss.backward()
+            loss_item = loss.item()
+            loss_val += loss_item
+            
             optimizer.step()
             
-        if (epoch + 1) % 100 == 0:
-            print(f"Epoch {epoch + 1}/{1000}, Loss: {loss.item():.4f}")
+            acc_current = accuracy(outputs, labels)
+            accuracy_val += acc_current
+            
+        accuracy_values.append(accuracy_val/len(data_loader))
+        loss_values.append(loss_val/len(data_loader))
+            
+        if (epoch + 1) % 50 == 0:
+            print(f"Epoch {epoch+1}: Average loss: {loss_val/len(data_loader):.4f}")
+            print(f"Accuracy: {accuracy_val/len(data_loader):.4f}")
+
     
     data = {
         "model_state": model.state_dict(),
@@ -54,9 +78,24 @@ def train_model() -> None:
     torch.save(data, MODEL_FILE_PATH)
     logger.success("NN successfully trained")
     
-    with open(get_path("transport", "states.py"), "w", encoding="utf-8") as file:
-        file.write('\n"""States train can have"""\n\n')
-        for command in dataset.commands:
-            file.write(f"{command}='{command}'\n")
-        logger.success("States file successfully created")
+    plt.plot([i for i in range(NN_TRAIN_EPOCHS)], accuracy_values)
+    
+    plt.xlabel('Эпоха')
+    plt.ylabel('Точность')
+    plt.title('Точность классификатора команд')
+    
+    plt.savefig(get_path("metrics", "accuracy.png"))
+    plt.close()
+    
+    logger.success("Accuracy image saved")
+    
+    plt.plot([i for i in range(NN_TRAIN_EPOCHS)], loss_values)
+    
+    plt.xlabel('Эпоха')
+    plt.ylabel('Процент потерь')
+    plt.title('Потери классификатора команд')
+    
+    plt.savefig(get_path("metrics", "loss.png"))
+    plt.close()
+    logger.success("Loss image saved")
     

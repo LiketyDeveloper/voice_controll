@@ -1,8 +1,8 @@
 from ai.nltk_utils import get_number_from_text
 from util import get_path
+import time
 
 from loguru import logger
-from transport import states
 
 train_db = {
     1: {
@@ -31,7 +31,6 @@ class Train:
         self._train_id = train_id
         self._speed = 0
         self._max_speed = train_db[train_id]["max_speed"]
-        self._current_state = states.stop
        
     @property
     def train_id(self):
@@ -45,23 +44,11 @@ class Train:
     def max_speed(self):
         return self._max_speed
     
-    @property
-    def current_state(self):
-        return self._current_state
-    
-    @current_state.setter
-    def current_state(self, new_state):
-        self._current_state = new_state
-        
-        with open(f"{get_path("transport")}\_state_cache.txt", "w") as file:
-            file.write(new_state)
-    
     def perform_action(self, command: str, text: str):
     
         match command:
             case "move_forward":
                 logger.info("Едем вперед")
-                # time.sleep(10)
                 logger.info("Timer is over")
 
             case "move_backwards":

@@ -1,11 +1,8 @@
-import multiprocessing.process
-import os
-
 # from speech_recognition import listen
 from ai.model import load_model
 from loguru import logger
 from transport import Train
-import multiprocessing as mp
+from threading import Thread
 
 
 
@@ -24,12 +21,9 @@ def main():
         
         logger.info(f"Вы сказали: {text}")
         command_name = model.invoke(text)
-
-        train.current_state = command_name
         
+        Thread(target=train.perform_action, args=(command_name, text)).start()     
     
+
 if __name__ == "__main__":
-    # p = mp.Process(target=os.system, args=("python manage_states.py",))
-    # p.start()
-    
     main()

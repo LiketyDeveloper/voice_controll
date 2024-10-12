@@ -1,4 +1,4 @@
-from ai.nltk_utils import get_number_from_text
+from util.nltk import get_number_from_text
 from util import get_path
 import time
 
@@ -45,6 +45,7 @@ class Train:
         return self._max_speed
     
     def perform_action(self, command: str, text: str):
+<<<<<<< HEAD
     
         match command:
             case "move_forward":
@@ -91,6 +92,9 @@ class Train:
                 logger.info("Непонятная команда")
                 
         logger.info(self)
+=======
+        print("ваша команда", command)
+>>>>>>> 56d82a7 (Refactored AI training code, added metrics, moved the task processing to other thread)
             
     def __str__(self):
         return f"Поезд {self.train_id}: Текущая скорость: {self.speed}"

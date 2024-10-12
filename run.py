@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from speech_recognition import listen
+=======
+# from speech_recognition import listen
+>>>>>>> 56d82a7 (Refactored AI training code, added metrics, moved the task processing to other thread)
 from ai.model import load_model
 from loguru import logger
 from transport import Train

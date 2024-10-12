@@ -1,11 +1,14 @@
 import json
+import os
 from loguru import logger
+from tqdm import tqdm
 
 import torch
 from torch.utils.data import Dataset
 import pymorphy3
 
 
+<<<<<<< HEAD
 from ai.nltk_utils import tokenize, stem, bag_of_words, get_stopwords, is_number
 from ai import DEVICE
 
@@ -44,13 +47,44 @@ def preprocess(command, pattern):
 
     return for_vocab, for_train_data
 
+=======
+from util.nltk import tokenize, stem, bag_of_words, get_stopwords, is_number
+from util import get_labels
+from ai import DEVICE
+
+from config.nn import ANNOTATIONS_PATH, VOCAB_PATH
+
+
+def preprocess_text(text: str) -> list:
+    """Returns a list of stemmed tokens from given string"""
+    tokens = tokenize(text)
+    tokens = [stem(token) for token in tokens]
+    return tokens
+>>>>>>> 56d82a7 (Refactored AI training code, added metrics, moved the task processing to other thread)
 
 
 class CommandDataset(Dataset):
     
-    __instance = None
-    __init_called = False
+    def __init__(self, train=False) -> None:
+        super().__init__()
+
+        
+        self.annotations = []
+        self.train_annotations = []
+        self.test_annotations = []
+        
+        for filename in os.listdir(ANNOTATIONS_PATH):
+            if filename.endswith(".json"):
+                with open(os.path.join(ANNOTATIONS_PATH, filename), "r", encoding="utf-8") as file:
+                    data = json.load(file)
+                    self.annotations.extend(data)
+
+                    if "luga" in filename:
+                        self.test_annotations.extend(data)
+                    else:
+                        self.train_annotations.extend(data)        
     
+<<<<<<< HEAD
     def __new__(cls, *args, **kwargs):
         if not cls.__instance:
             cls.__instance = super(CommandDataset, cls).__new__(cls)
@@ -118,16 +152,61 @@ class CommandDataset(Dataset):
                 self.n_samples = data["data_lenght"]
                 self.commands = data["commands"]
                 self.vocabulary = data["vocabulary"]
+=======
+        self.vocabulary = []
+        self.train_data = []
+        self.test_data = []
+
+        # Creating vocabulary with all words
+        for annotation in (pbar := tqdm(self.annotations)):
+            tokens = preprocess_text(annotation["text"])
+            self.vocabulary.extend(tokens)
+            pbar.set_description("Creating vocabulary")
             
-            logger.debug("Dataset initialized")
-            CommandDataset.__init_called = True
-        else:
-            self = CommandDataset.__instance
+        stop_words = get_stopwords()
+        stop_words.extend([".", ","])
+        self.vocabulary = sorted(set(self.vocabulary))
+        self.vocabulary = [stem(word) for word in self.vocabulary if word not in stop_words]
+        
+        # Finally saving vocabulary to file
+        with open(VOCAB_PATH, "w", encoding="utf8") as filename:
+            json.dump(self.vocabulary, filename, ensure_ascii=False, indent=4)
+            logger.success(f"Vocabulary saved to {VOCAB_PATH}, {len(self.vocabulary)} words")
+        
+        
+        for annotation in (pbar := tqdm(self.train_annotations)):
+            tokens = preprocess_text(annotation["text"])
+            vector = torch.Tensor(bag_of_words(tokens, self.vocabulary))
+            
+            label = annotation["label"]
+>>>>>>> 56d82a7 (Refactored AI training code, added metrics, moved the task processing to other thread)
+            
+            self.train_data.append((vector, label))
+            pbar.set_description("Getting train dataset")
+            
+        for annotation in (pbar := tqdm(self.test_annotations)):
+            tokens = preprocess_text(annotation["text"])
+            vector = torch.Tensor(bag_of_words(tokens, self.vocabulary))
+            
+            label = annotation["label"]
+            
+            self.test_data.append((vector, label))    
+            pbar.set_description("Getting test dataset")    
+        
+        # self.train_data = torch.tensor(self.train_data).to(DEVICE)
+        # self.test_data = torch.tensor(self.test_data).to(DEVICE)
+        
+        self.n_samples = len(self.annotations)
+        
+        logger.success(f"Dataset successfully created: {self.n_samples} samples")
 
     
-    def __getitem__(self, index):
-        return self.x[index], self.y[index]
-    
+    def __getitem__(self, key):
+        match key:
+            case "test":
+                return self.test_data
+            case "train":
+                return self.train_data
     
     def __len__(self):
         return self.n_samples

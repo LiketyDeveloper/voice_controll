@@ -1,6 +1,7 @@
 import json, pyaudio, os
 from vosk import Model, KaldiRecognizer
 from vosk import SetLogLevel
+from pydub import AudioSegment
 
 from config.sr import USE_BIG_SR_MODEL, SHOW_SR_LOG, BIG_MODEL_PATH, SMALL_MODEL_PATH
 
@@ -27,12 +28,27 @@ stream = p.open(
 
 stream.start_stream()
 
-def listen():
-    """Listen for audio data"""
-    
+def recognize_speech_from_file(file_path):
+    """
+    Recognize speech from an audio file using vosk KaldiRecognizer
+    """
+    recognizer = KaldiRecognizer(model, 16000)
+
+# Open the audio file
+    wf = wave.open(file_path, "rb")
+
+    # Process the audio file
     while True:
-        data = stream.read(4000, exception_on_overflow=False)
-        if rec.AcceptWaveform(data) and len(data) > 0:
-            answer = json.loads(rec.Result())
-            if answer["text"]:
-                yield answer["text"]
+        data = wf.readframes(4000)
+        if len(data) == 0:
+            break
+        if recognizer.AcceptWaveform(data):
+            result = recognizer.Result()
+            print(result)
+        else:
+            partial_result = recognizer.PartialResult()
+            print(partial_result)
+
+    # Get the final recognized result
+    result = recognizer.FinalResult()
+    return result

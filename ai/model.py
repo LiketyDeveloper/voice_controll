@@ -1,13 +1,15 @@
 from loguru import logger
+import json
 
 import torch 
 import torch.nn as nn
+import torch.nn.functional as F
 
-from ai.nltk_utils import tokenize, stem, bag_of_words
+from util.nltk import tokenize, stem, bag_of_words
 from ai import DEVICE
-from ai.dataset import CommandDataset
 
-from config.nn import MODEL_FILE_PATH
+from config.nn import MODEL_FILE_PATH, VOCAB_PATH
+from util import id2label, get_labels
 
 class CommandIdentifier(nn.Module):
     """Neural Network class to identify commands from text input"""
@@ -30,8 +32,9 @@ class CommandIdentifier(nn.Module):
             self.l3 = nn.Linear(hidden_size, num_classes)
             self.activation = nn.ReLU()
             
-            self._dataset = CommandDataset()
-            
+            with open(VOCAB_PATH, "r", encoding="utf-8") as file:
+                self.vocabulary = json.load(file)
+                        
             logger.debug("Neural Network model initialized")
             
         else:
@@ -47,6 +50,7 @@ class CommandIdentifier(nn.Module):
         
         return out
     
+<<<<<<< HEAD
     @logger.catch
     def invoke(self, query):
         dataset = CommandDataset()
@@ -54,6 +58,14 @@ class CommandIdentifier(nn.Module):
         sentence = tokenize(query)
         sentence = [stem(word) for word in sentence]
         sentence = bag_of_words(sentence, dataset.vocabulary)
+=======
+    
+    @logger.catch
+    def invoke(self, query):        
+        sentence = tokenize(query)
+        sentence = [stem(word) for word in sentence]
+        sentence = bag_of_words(sentence, self.vocabulary)
+>>>>>>> 56d82a7 (Refactored AI training code, added metrics, moved the task processing to other thread)
 
         
         sentence = torch.Tensor(sentence).to(DEVICE)
@@ -62,15 +74,24 @@ class CommandIdentifier(nn.Module):
         
         logger.debug("\n" + "\n".join([
             f"{command}{"\t" if len(command) > 4 else "\t\t"}>>\t{probability.item()}" 
+<<<<<<< HEAD
             for command, probability in zip(dataset.commands, res[0])
+=======
+            for command, probability in zip(get_labels(), res[0])
+>>>>>>> 56d82a7 (Refactored AI training code, added metrics, moved the task processing to other thread)
         ]))
         
         logger.debug(res)
 
+<<<<<<< HEAD
         if all(res[0] < 0):
             return "Непонятная команда"
+=======
+        # if all(res[0] < 0):
+        #     return "Непонятная команда"
+>>>>>>> 56d82a7 (Refactored AI training code, added metrics, moved the task processing to other thread)
         
-        return dataset.commands[self(sentence).argmax()]
+        return id2label(int(self(sentence).argmax()))
     
 
 def load_model() -> CommandIdentifier:

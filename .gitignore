@@ -1,4 +1,9 @@
 __pycache__
 .venv
 sr_model
+<<<<<<< HEAD
 sr_model_big
+=======
+test
+dataset/
+>>>>>>> 56d82a7 (Refactored AI training code, added metrics, moved the task processing to other thread)
